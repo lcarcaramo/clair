@@ -1,34 +1,18 @@
-language: go
-sudo: required
-
-env:
-- GO111MODULE=on
-
-script:
-- go test ./...
-
-dist: trusty
-
+arch: s390x
 services:
-  - postgresql
-
-notifications:
-  email: false
-
-matrix:
-  include:
-  - addons:
-      apt:
-        packages:
-        - rpm
-      postgresql: 9.4
-  - addons:
-      apt:
-        packages:
-        - rpm
-      postgresql: 9.5
-  - addons:
-      apt:
-        packages:
-        - rpm
-      postgresql: 9.6
+  - docker
+env:
+  global:
+    - TEST_DIR="$PWD/test"
+    - TEST_SCRIPT="test.sh"
+    - BUILD_DIR="$PWD"
+    - REPO="quay.io/ibmz/clair"
+    - TAG="$REPO:2.0"
+before_script: 
+  - cd $TEST_DIR && chmod +x $TEST_SCRIPT
+  - docker login quay.io -u $ROBOT -p $ROBOT_TOKEN
+script: 
+  - docker build $BUILD_DIR --tag $TAG
+  - cd $TEST_DIR && bash $TEST_SCRIPT 
+after_script:
+  - docker push $REPO
