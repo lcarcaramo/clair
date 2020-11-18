@@ -27,7 +27,7 @@ Thus, the project was named `Clair` after the French term which translates to *c
 
 ## Documentation
 
-* [The CoreOS website] has a rendered version of the latest stable documentationvim
+* [The CoreOS website] has a rendered version of the latest stable documentation
 
 [The CoreOS website]: https://coreos.com/clair/docs/latest/
 
