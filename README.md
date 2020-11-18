@@ -1,13 +1,8 @@
-# Clair
+# Tags
+> _Built from [`quay.io/ibmz/golang:1.15`](https://quay.io/repository/ibmz/golang?tab=tags)_
+-	[`2.0`](https://github.com/lcarcaramo/clair/blob/release-2.0-s390x/Dockerfile) - [![Build Status](https://travis-ci.com/lcarcaramo/clair.svg?branch=main)](https://travis-ci.com/lcarcaramo/clair)
 
-[![Build Status](https://api.travis-ci.org/coreos/clair.svg?branch=master "Build Status")](https://travis-ci.org/coreos/clair)
-[![Docker Repository on Quay](https://quay.io/repository/coreos/clair/status "Docker Repository on Quay")](https://quay.io/repository/coreos/clair)
-[![Go Report Card](https://goreportcard.com/badge/coreos/clair "Go Report Card")](https://goreportcard.com/report/coreos/clair)
-[![GoDoc](https://godoc.org/github.com/coreos/clair?status.svg "GoDoc")](https://godoc.org/github.com/coreos/clair)
-[![IRC Channel](https://img.shields.io/badge/freenode-%23clair-blue.svg "IRC Channel")](http://webchat.freenode.net/?channels=clair)
-
-**Note**: The `master` branch may be in an *unstable or even broken state* during development.
-Please use [releases] instead of the `master` branch in order to get stable binaries.
+# What is Clair
 
 ![Clair Logo](https://cloud.githubusercontent.com/assets/343539/21630811/c5081e5c-d202-11e6-92eb-919d5999c77a.png)
 
@@ -32,120 +27,126 @@ Thus, the project was named `Clair` after the French term which translates to *c
 
 ## Documentation
 
-* [The CoreOS website] has a rendered version of the latest stable documentation
-* [Inside the Documentation directory] is the source markdown files for documentation
+* [The CoreOS website] has a rendered version of the latest stable documentationvim
 
 [The CoreOS website]: https://coreos.com/clair/docs/latest/
-[Inside the Documentation directory]: /Documentation
 
-## Deploying Clair
+# How to use this image
 
-### Container Repositories
-
-Clair is officially packaged and released as a container.
-
-* [quay.io/coreos/clair] - Stable releases
-* [quay.io/coreos/clair-jwt] - Stable releases with an embedded instance of [jwtproxy]
-* [quay.io/coreos/clair-git] - Development releases
-
-[quay.io/coreos/clair]: https://quay.io/repository/coreos/clair
-[jwtproxy]: https://github.com/coreos/jwtproxy
-[quay.io/coreos/clair-jwt]: https://quay.io/repository/coreos/clair-jwt
-[quay.io/coreos/clair-git]: https://quay.io/repository/coreos/clair-git
-
-### Commercially Supported
-
-Clair is professionally supported as a data source for the [Quay] Security Scanning feature.
-The setup documentation for using Clair for this environment can be found on the [Quay documentation] on the [CoreOS] website.
-Be sure to adjust the version of the documentation to the version of Quay being used in your deployment.
-
-[Quay]: https://quay.io
-[Quay documentation]: https://coreos.com/quay-enterprise/docs/latest/clair.html
-[CoreOS]: https://coreos.com
-
-### Community Supported
-
-**NOTE:** These instructions demonstrate running HEAD and not stable versions.
-
-The following are community supported instructions to run Clair in a variety of ways.
-A database instance is required for all instructions.
-
-Clair currently supports and tests against:
-
-* [Postgres] 9.4
-* [Postgres] 9.5
-* [Postgres] 9.6
-
-[Postgres]: https://www.postgresql.org
-
-#### Kubernetes
-
-If you don't have a local Kubernetes cluster already, check out [minikube].
-
-[minikube]: https://github.com/kubernetes/minikube
-
-```
-git clone https://github.com/coreos/clair
-cd clair/contrib/k8s
-kubectl create secret generic clairsecret --from-file=./config.yaml
-kubectl create -f clair-kubernetes.yaml
+* Start a PostgreSQL database container. _(Clair will need to use this database.)_
+```console
+$ docker run --name clair-db -p 5432:5432 -e POSTGRES_PASSWORD=<password> -d quay.io/ibmz/postgres:13
 ```
 
-#### Docker Compose
+* Get a copy of the sample `config.yaml` file below and put it in the `/config` directory of a __Docker volume__. _(Fill all placeholders in `config.yaml`.)_
+```yaml
+# Copyright 2015 clair authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-```sh
-$ curl -L https://raw.githubusercontent.com/coreos/clair/master/docker-compose.yml -o $HOME/docker-compose.yml
-$ mkdir $HOME/clair_config
-$ curl -L https://raw.githubusercontent.com/coreos/clair/master/config.example.yaml -o $HOME/clair_config/config.yaml
-$ $EDITOR $HOME/clair_config/config.yaml # Edit database source to be postgresql://postgres:password@postgres:5432?sslmode=disable
-$ docker-compose -f $HOME/docker-compose.yml up -d
+# The values specified here are the default values that Clair uses if no configuration file is specified or if the keys are not defined.
+clair:
+  database:
+    # Database driver
+    type: pgsql
+    options:
+      # PostgreSQL Connection string
+      # https://www.postgresql.org/docs/current/static/libpq-connect.html#LIBPQ-CONNSTRING
+      source: postgresql://postgres:<password>@<host/ip address>:5432?sslmode=disable
+
+      # Number of elements kept in the cache
+      # Values unlikely to change (e.g. namespaces) are cached in order to save prevent needless roundtrips to the database.
+      cachesize: 16384
+
+  api:
+    # API server port
+    port: 6060
+
+    # Health server port
+    # This is an unencrypted endpoint useful for load balancers to check to healthiness of the clair server.
+    healthport: 6061
+
+    # Deadline before an API request will respond with a 503
+    timeout: 900s
+
+    # 32-bit URL-safe base64 key used to encrypt pagination tokens
+    # If one is not provided, it will be generated.
+    # Multiple clair instances in the same cluster need the same value.
+    paginationkey:
+
+    # Optional PKI configuration
+    # If you want to easily generate client certificates and CAs, try the following projects:
+    # https://github.com/coreos/etcd-ca
+    # https://github.com/cloudflare/cfssl
+    servername:
+    cafile:
+    keyfile:
+    certfile:
+
+  updater:
+    # Frequency the database will be updated with vulnerabilities from the default data sources
+    # The value 0 disables the updater entirely.
+    interval: 2h
+
+  notifier:
+    # Number of attempts before the notification is marked as failed to be sent
+    attempts: 3
+
+    # Duration before a failed notification is retried
+    renotifyinterval: 2h
+
+    http:
+      # Optional endpoint that will receive notifications via POST requests
+      endpoint:
+
+      # Optional PKI configuration
+      # If you want to easily generate client certificates and CAs, try the following projects:
+      # https://github.com/cloudflare/cfssl
+      # https://github.com/coreos/etcd-ca
+      servername:
+      cafile:
+      keyfile:
+      certfile:
+
+      # Optional HTTP Proxy: must be a valid URL (including the scheme).
+      proxy:
 ```
 
-Docker Compose may start Clair before Postgres which will raise an error.
-If this error is raised, manually execute `docker-compose start clair`.
-
-#### Docker
-
-```sh
-$ mkdir $PWD/clair_config
-$ curl -L https://raw.githubusercontent.com/coreos/clair/master/config.example.yaml -o $PWD/clair_config/config.yaml
-$ docker run -d -e POSTGRES_PASSWORD="" -p 5432:5432 postgres:9.6
-$ docker run -d -p 6060-6061:6060-6061 -v $PWD/clair_config:/config quay.io/coreos/clair-git:latest -config=/config/config.yaml
+* Run the Clair image. 
+```console
+$ docker run --name clair-test -d -v clair-config-vol:/config -p 6060-6061:6060-6061 quay.io/ibmz/clair:2.0 -config=/config/config.yaml
 ```
 
-#### Source
-
-To build Clair, you need to latest stable version of [Go] and a working [Go environment].
-In addition, Clair requires some additional binaries be installed on the system [$PATH] as runtime dependencies:
-
-* [git]
-* [rpm]
-* [xz]
-
-[Go]: https://github.com/golang/go/releases
-[Go environment]: https://golang.org/doc/code.html
-[git]: https://git-scm.com
-[rpm]: http://www.rpm.org
-[xz]: http://tukaani.org/xz
-[$PATH]: https://en.wikipedia.org/wiki/PATH_(variable)
-
-```sh
-$ go get github.com/coreos/clair
-$ go install github.com/coreos/clair/cmd/clair
-$ $EDITOR config.yaml # Add the URI for your postgres database
-$ ./$GOPATH/bin/clair -config=config.yaml
+* Perform a health check.
+```console
+curl -X GET -I http://<host/ip where clair container is running>:6061/health
 ```
 
-## Frequently Asked Questions
+* Get an image's vulnerability report. _(Note that you may need to wait several mintues for vulnerabilitiy reports to be ready)_
+```console
+curl -X GET http://<host/ip where clair container is running>:6060/v1/namespaces/debian:10/vulnerabilities?limit=2
+```
 
-### Who's using Clair?
+# Frequently Asked Questions
+
+## Who's using Clair?
 
 You can find [production users] and third party [integrations] documented in their respective pages of the local documentation.
 
 [production users]: https://github.com/coreos/clair/blob/master/Documentation/production-users.md
 [integrations]: https://github.com/coreos/clair/blob/master/Documentation/integrations.md
 
-### What do you mean by static analysis?
+## What do you mean by static analysis?
 
 There are two major ways to perform analysis of programs: [Static Analysis] and [Dynamic Analysis].
 Clair has been designed to perform *static analysis*; containers never need to be executed.
@@ -155,7 +156,7 @@ By indexing the features of an image into the database, images only need to be r
 [Static Analysis]: https://en.wikipedia.org/wiki/Static_program_analysis
 [Dynamic Analysis]: https://en.wikipedia.org/wiki/Dynamic_program_analysis
 
-### What data sources does Clair currently support?
+## What data sources does Clair currently support?
 
 | Data Source                        | Data Collected                                                           | Format | License         |
 |------------------------------------|--------------------------------------------------------------------------|--------|-----------------|
@@ -184,19 +185,19 @@ By indexing the features of an image into the database, images only need to be r
 [MIT]: https://gist.github.com/jzelinskie/6da1e2da728424d88518be2adbd76979
 [MIT-0]: https://spdx.org/licenses/MIT-0.html
 
-### What do most deployments look like?
+## What do most deployments look like?
 
 From a high-level, most deployments integrate with the registry workflow rather than manual API usage by a human.
 They typically take up a form similar to the following diagram:
 
 ![Simple Clair Diagram](https://cloud.githubusercontent.com/assets/343539/21630809/c1adfbd2-d202-11e6-9dfe-9024139d0a28.png)
 
-### I just started up Clair and nothing appears to be working, what's the deal?
+## I just started up Clair and nothing appears to be working, what's the deal?
 
 During the first run, Clair will bootstrap its database with vulnerability data from the configured data sources.
 It can take several minutes before the database has been fully populated, but once this data is stored in the database, subsequent updates will take far less time.
 
-### What terminology do I need to understand to work with Clair internals?
+## What terminology do I need to understand to work with Clair internals?
 
 - *Image* - a tarball of the contents of a container
 - *Layer* - an *appc* or *Docker* image that may or may not be dependent on another image
@@ -205,7 +206,7 @@ It can take several minutes before the database has been fully populated, but on
 - *Vulnerability Updater* - a Go package that tracks upstream vulnerability data and imports them into Clair
 - *Vulnerability Metadata Appender* - a Go package that tracks upstream vulnerability metadata and appends them into vulnerabilities managed by Clair
 
-### How can I customize Clair?
+## How can I customize Clair?
 
 The major components of Clair are all programmatically extensible in the same way Go's standard [database/sql] package is extensible.
 Everything extensible is located in the `ext` directory.
@@ -217,9 +218,13 @@ To expose the new behavior, unqualified imports to the package must be added in 
 [init()]: https://golang.org/doc/effective_go.html#init
 [main.go]: https://github.com/coreos/clair/blob/master/cmd/clair/main.go
 
-### Are there any public presentations on Clair?
+## Are there any public presentations on Clair?
 
 - _Clair: The Container Image Security Analyzer @ ContainerDays Boston 2016_ - [Event](http://dynamicinfradays.org/events/2016-boston/) [Video](https://www.youtube.com/watch?v=Kri67PtPv6s) [Slides](https://docs.google.com/presentation/d/1ExQGZs-pQ56TpW_ifcUl2l_ml87fpCMY6-wdug87OFU)
 - _Identifying Common Vulnerabilities and Exposures in Containers with Clair @ CoreOS Fest 2016_ - [Event](https://coreos.com/fest/) [Video](https://www.youtube.com/watch?v=YDCa51BK2q0) [Slides](https://docs.google.com/presentation/d/1pHSI_5LcjnZzZBPiL1cFTZ4LvhzKtzh86eE010XWNLY)
 - _Clair: A Container Image Security Analyzer @  Microservices NYC_ - [Event](https://www.meetup.com/Microservices-NYC/events/230023492/) [Video](https://www.youtube.com/watch?v=ynwKi2yhIX4) [Slides](https://docs.google.com/presentation/d/1ly9wQKQIlI7rlb0JNU1_P-rPDHU4xdRCCM3rxOdjcgc)
 - _Clair: A Container Image Security Analyzer @ Container Orchestration NYC_ - [Event](https://www.meetup.com/Container-Orchestration-NYC/events/229779466/) [Video](https://www.youtube.com/watch?v=wTfCOUDNV_M) [Slides](https://docs.google.com/presentation/d/1ly9wQKQIlI7rlb0JNU1_P-rPDHU4xdRCCM3rxOdjcgc)
+
+# License
+
+Apache 2.0 Licence: See details [here](https://github.com/quay/clair/blob/main/LICENSE)
