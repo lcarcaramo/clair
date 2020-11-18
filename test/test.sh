@@ -71,12 +71,12 @@ suite_start
                 wait_until_ready 5
                 docker run --name configured-clair-scanner -d -p 6060-6061:6060-6061 "configured-clair-scanner" -config=/config/config.yaml
                 wait_until_ready 30
-                curl --fail -X GET -I http://$(curl ifconfig.me):6061/health | grep 200
+                curl --fail -X GET -I http://localhost:6061/health | grep 200
                 print_success "Success! Clair is running and healthy"
                 
         print_test_case "It provides information about image vulnerabilities."
                 wait_until_ready 400
-                curl --fail -X GET -I http://$(curl ifconfig.me):6060/v1/namespaces/debian:10/vulnerabilities?limit=2 | grep 200
+                curl --fail -X GET -I http://localhost:6060/v1/namespaces/debian:10/vulnerabilities?limit=2 | grep 200
                 print_success "Success! Clair is providing information about image vulnerabilities."
                 docker rm -f configured-clair-scanner
                 docker rm -f clair-db
