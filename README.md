@@ -38,7 +38,7 @@ Thus, the project was named `Clair` after the French term which translates to *c
 $ docker run --name clair-db -p 5432:5432 -e POSTGRES_PASSWORD=<password> -d quay.io/ibmz/postgres:13
 ```
 
-* Get a copy of the sample `config.yaml` file below and put it in the `/config` directory of a __Docker volume__. _(Fill all placeholders in `config.yaml`.)_
+* Get a copy of the sample `config.yaml` file below and put it in the `/config` directory of a __Docker volume__. _(Fill all `<placeholders>` in `config.yaml`.)_
 ```yaml
 # Copyright 2015 clair authors
 #
@@ -124,17 +124,17 @@ clair:
 
 * Run the Clair image. 
 ```console
-$ docker run --name clair-test -d -v clair-config-vol:/config -p 6060-6061:6060-6061 quay.io/ibmz/clair:2.0 -config=/config/config.yaml
+$ docker run --name clair -d -v clair-config-vol:/config -p 6060-6061:6060-6061 quay.io/ibmz/clair:2.0 -config=/config/config.yaml
 ```
 
 * Perform a health check.
 ```console
-curl -X GET -I http://<host/ip where clair container is running>:6061/health
+$ curl -X GET -I http://<host/ip where clair container is running>:6061/health
 ```
 
 * Get an image's vulnerability report. _(Note that you may need to wait several mintues for vulnerabilitiy reports to be ready)_
 ```console
-curl -X GET http://<host/ip where clair container is running>:6060/v1/namespaces/debian:10/vulnerabilities?limit=2
+$ curl -X GET http://<host/ip where clair container is running>:6060/v1/namespaces/debian:10/vulnerabilities?limit=2
 ```
 
 # Frequently Asked Questions
