@@ -20,7 +20,7 @@ clair:
     options:
       # PostgreSQL Connection string
       # https://www.postgresql.org/docs/current/static/libpq-connect.html#LIBPQ-CONNSTRING
-      source: postgresql://postgres:password@127.0.1.1:5431?sslmode=disable
+      source: postgresql://postgres@travis.dev:5432?sslmode=disable
 
       # Number of elements kept in the cache
       # Values unlikely to change (e.g. namespaces) are cached in order to save prevent needless roundtrips to the database.
