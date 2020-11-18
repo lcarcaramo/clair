@@ -67,7 +67,7 @@ suite_end () {
 suite_start
         print_test_case "It starts successfully:"
                 build "configured-clair-scanner"
-                docker run --name clair-db --net localhost -p 5431:5432 -e POSTGRES_PASSWORD=password -d quay.io/ibmz/postgres:13
+                docker run --name clair-db -p 5431:5432 -e POSTGRES_PASSWORD=password -d quay.io/ibmz/postgres:13
                 wait_until_ready 10
                 docker logs clair-db
                 docker run --name configured-clair-scanner -d -p 6060-6061:6060-6061 "configured-clair-scanner" -config=/config/config.yaml
