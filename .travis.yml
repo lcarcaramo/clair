@@ -1,6 +1,7 @@
 arch: s390x
 services:
   - docker
+  - postgresql
 addons:
   hosts:
     - travis.dev
