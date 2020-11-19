@@ -70,7 +70,7 @@ suite_start
                 docker run --name clair-db -e POSTGRES_PASSWORD=password -d quay.io/ibmz/postgres:13
                 wait_until_ready 10
                 docker logs clair-db
-                docker run --name configured-clair-scanner --network container:clair-db -d -p 6060-6061:6060-6061 "configured-clair-scanner" -config=/config/config.yaml
+                docker run --name configured-clair-scanner --network container:clair-db -d "configured-clair-scanner" -config=/config/config.yaml
                 wait_until_ready 60
                 docker logs configured-clair-scanner
                 docker exec configured-clair-scanner $(curl --fail -X GET -I http://travis.dev:6061/health | grep 200)
