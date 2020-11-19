@@ -69,16 +69,15 @@ suite_start
                 build "configured-clair-scanner"
                 docker run --name clair-db -e POSTGRES_PASSWORD=password -d quay.io/ibmz/postgres:13
                 wait_until_ready 10
-                docker logs clair-db
                 docker run --name configured-clair-scanner --network container:clair-db -d "configured-clair-scanner" -config=/config/config.yaml
                 wait_until_ready 60
-                docker logs configured-clair-scanner
                 docker exec configured-clair-scanner curl --fail -X GET -I http://localhost:6061/health | grep 200
                 print_success "Success! Clair is running and healthy"
                 
         print_test_case "It provides information about image vulnerabilities."
                 wait_until_ready 400
                 docker exec configured-clair-scanner curl --fail -X GET -I http://localhost:6060/v1/namespaces/debian:10/vulnerabilities?limit=2 | grep 200
+                docker exec configured-clair-scanner curl --fail -X GET http://localhost:6060/v1/namespaces/debian:10/vulnerabilities?limit=2
                 print_success "Success! Clair is providing information about image vulnerabilities."
                 docker rm -f configured-clair-scanner
                 docker rm -f clair-db
