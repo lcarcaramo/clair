@@ -15,6 +15,7 @@ env:
 before_script: 
   - cd $TEST_DIR && chmod +x $TEST_SCRIPT
   - docker login quay.io -u $ROBOT -p $ROBOT_TOKEN
+  - psql -c "CREATE DATABASE testing_db;" -U postgres
   - psql -c "CREATE USER foo WITH PASSWORD 'password';" -U postgres
 script: 
   - docker build $BUILD_DIR --tag $TAG
