@@ -1,9 +1,6 @@
 arch: s390x
 services:
   - docker
-addons:
-  hosts:
-    - travis.dev
 env:
   global:
     - TEST_DIR="$PWD/test"
