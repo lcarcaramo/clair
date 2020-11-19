@@ -67,9 +67,9 @@ suite_end () {
 suite_start
         print_test_case "It starts successfully:"
                 build "configured-clair-scanner"
-                # docker run --name clair-db -p 5431:5432 -e POSTGRES_PASSWORD=password -d quay.io/ibmz/postgres:13
-                # wait_until_ready 10
-                # docker logs clair-db
+                docker run --name clair-db -p 5431:5432 -e POSTGRES_PASSWORD=password -d quay.io/ibmz/postgres:13
+                wait_until_ready 10
+                docker logs clair-db
                 docker run --name configured-clair-scanner -d -p 6060-6061:6060-6061 "configured-clair-scanner" -config=/config/config.yaml
                 wait_until_ready 60
                 docker logs configured-clair-scanner
@@ -81,6 +81,6 @@ suite_start
                 curl --fail -X GET -I http://travis.dev:6060/v1/namespaces/debian:10/vulnerabilities?limit=2 | grep 200
                 print_success "Success! Clair is providing information about image vulnerabilities."
                 docker rm -f configured-clair-scanner
-                # docker rm -f clair-db
+                docker rm -f clair-db
                 cleanup "configured-clair-scanner"
 suite_end
