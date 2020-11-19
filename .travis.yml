@@ -1,11 +1,6 @@
 arch: s390x
 services:
   - docker
-  - postgresql
-apt:
-  packages:
-    - postgresql-13
-    - postgresql-client-13
 addons:
   hosts:
     - travis.dev
@@ -19,8 +14,6 @@ env:
 before_script: 
   - cd $TEST_DIR && chmod +x $TEST_SCRIPT
   - docker login quay.io -u $ROBOT -p $ROBOT_TOKEN
-  - sudo /etc/init.d/postgresql start 13
-  - psql -c "CREATE USER 'user' WITH PASSWORD 'password';" -U postgres
 script: 
   - docker build $BUILD_DIR --tag $TAG
   - cd $TEST_DIR && bash $TEST_SCRIPT 
