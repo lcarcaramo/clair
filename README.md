@@ -1,7 +1,6 @@
 # Tags
 > _Built from [`quay.io/ibmz/golang:1.15`](https://quay.io/repository/ibmz/golang?tab=tags)_
--	[`2.0`](https://github.com/lcarcaramo/clair/blob/release-2.0-s390x/Dockerfile) - [![Build Status](https://travis-ci.com/lcarcaramo/clair.svg?branch=main)](https://travis-ci.com/lcarcaramo/clair)
-
+-	[`2.0`](https://github.com/lcarcaramo/clair/blob/release-2.0-s390x/Dockerfile) - [![Build Status](https://travis-ci.com/lcarcaramo/clair.svg?branch=release-2.0-s390x)](https://travis-ci.com/lcarcaramo/clair)
 # What is Clair
 
 ![Clair Logo](https://cloud.githubusercontent.com/assets/343539/21630811/c5081e5c-d202-11e6-92eb-919d5999c77a.png)
