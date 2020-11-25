@@ -78,7 +78,7 @@ suite_start
                 wait_until_ready 10
                
                 print_info "Stating Clair..."
-                docker run --name configured --network container:clair-db -d "configured-clair" -config=/config/config.yaml
+                docker run --name configured-clair --network container:clair-db -d "configured-clair" -config=/config/config.yaml
                 wait_until_ready 60
                 
                 print_info "Performing health check on Clair"
