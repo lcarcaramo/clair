@@ -16,12 +16,16 @@ export TEST_SUITE_END="************************************** TEST SUCCESSFUL **
 
 # Pass in path to folder where Dockerfile lives
 print_dockerfile () {
-        echo -e "\n$ANSI_CYAN$DOCKERFILE_TOP\n$(<$1/Dockerfile)\n$ANSI_CYAN$DOCKERFILE_BOTTOM $ANSI_RESET\n"
+        echo -e "$ANSI_CYAN$DOCKERFILE_TOP\n$(<$1/Dockerfile)\n$ANSI_CYAN$DOCKERFILE_BOTTOM $ANSI_RESET\n"
 }
 
 # Pass in test case message
 print_test_case () {
         echo -e "\n$ANSI_YELLOW_BOLD$1 $ANSI_RESET"
+}
+
+print_info () {
+        echo -e "\n$ANSI_CYAN$1 $ANSI_RESET \n"
 }
 
 print_success () {
@@ -66,20 +70,27 @@ suite_end () {
 
 suite_start
         print_test_case "It starts successfully:"
-                build "configured-clair-scanner"
+                print_info "Building Configured Clair image..."
+                build "configured-clair"
+                
+                print_info "Starting Clair's PostgreSQL database..."
                 docker run --name clair-db -e POSTGRES_PASSWORD=password -d quay.io/ibmz/postgres:13
                 wait_until_ready 10
-                docker run --name configured-clair-scanner --network container:clair-db -d "configured-clair-scanner" -config=/config/config.yaml
+               
+                print_info "Stating Clair..."
+                docker run --name configured --network container:clair-db -d "configured-clair" -config=/config/config.yaml
                 wait_until_ready 60
-                docker exec configured-clair-scanner curl --fail -X GET -I http://localhost:6061/health | grep 200
-                print_success "Success! Clair is running and healthy"
+                
+                print_info "Performing health check on Clair"
+                docker exec configured-clair curl --fail -X GET -I http://localhost:6061/health | grep 200
+                print_success "Success! Clair is running and healthy."
                 
         print_test_case "It provides information about image vulnerabilities."
                 wait_until_ready 400
-                docker exec configured-clair-scanner curl --fail -X GET -I http://localhost:6060/v1/namespaces/debian:10/vulnerabilities?limit=2 | grep 200
-                docker exec configured-clair-scanner curl --fail -X GET http://localhost:6060/v1/namespaces/debian:10/vulnerabilities?limit=2
+                docker exec configured-clair curl --fail -X GET -I http://localhost:6060/v1/namespaces/debian:10/vulnerabilities?limit=2 | grep 200
+                docker exec configured-clair curl --fail -X GET http://localhost:6060/v1/namespaces/debian:10/vulnerabilities?limit=2
                 print_success "Success! Clair is providing information about image vulnerabilities."
-                docker rm -f configured-clair-scanner
+                docker rm -f configured-clair
                 docker rm -f clair-db
-                cleanup "configured-clair-scanner"
+                cleanup "configured-clair"
 suite_end
