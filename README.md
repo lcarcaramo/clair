@@ -136,6 +136,8 @@ $ curl -X GET -I http://<host/ip where clair container is running>:6061/health
 $ curl -X GET http://<host/ip where clair container is running>:6060/v1/namespaces/debian:10/vulnerabilities?limit=2
 ```
 
+* See [Clair Scanner](https://quay.io/repository/ibmz/clair-scanner?tab=info) to see how to scan local images with Clair.
+
 # Frequently Asked Questions
 
 ## Who's using Clair?
