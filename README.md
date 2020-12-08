@@ -1,7 +1,10 @@
 # Tags
-> _Built from [`quay.io/ibmz/golang:1.15`](https://quay.io/repository/ibmz/golang?tab=tags)_
--	[`2.0`](https://github.com/lcarcaramo/clair/blob/release-2.0-s390x/Dockerfile) - [![Build Status](https://travis-ci.com/lcarcaramo/clair.svg?branch=release-2.0-s390x)](https://travis-ci.com/lcarcaramo/clair)
-# What is Clair
+> _Built from [`quay.io/ibm/golang:1.15`](https://quay.io/repository/ibm/golang?tab=tags)_
+-	`2.0` - [![Build Status](https://travis-ci.com/lcarcaramo/clair.svg?branch=release-2.0-s390x)](https://travis-ci.com/lcarcaramo/clair)
+
+### __[Original Source Code](https://github.com/quay/clair)__
+
+# Clair
 
 ![Clair Logo](https://cloud.githubusercontent.com/assets/343539/21630811/c5081e5c-d202-11e6-92eb-919d5999c77a.png)
 
@@ -34,7 +37,7 @@ Thus, the project was named `Clair` after the French term which translates to *c
 
 * Start a PostgreSQL database container. _(Clair will need to use this database.)_
 ```console
-$ docker run --name clair-db -p 5432:5432 -e POSTGRES_PASSWORD=<password> -d quay.io/ibmz/postgres:13
+$ docker run --name clair-db -p 5432:5432 -e POSTGRES_PASSWORD=<password> -d quay.io/ibm/postgres:13
 ```
 
 * Get a copy of the sample `config.yaml` file below and put it in the `/config` directory of a __Docker volume__. _(Fill all `<placeholders>` in `config.yaml`.)_
@@ -123,7 +126,7 @@ clair:
 
 * Run the Clair image. 
 ```console
-$ docker run --name clair -d -v clair-config-vol:/config -p 6060-6061:6060-6061 quay.io/ibmz/clair:2.0 -config=/config/config.yaml
+$ docker run --name clair -d -v clair-config-vol:/config -p 6060-6061:6060-6061 quay.io/ibm/clair:2.0 -config=/config/config.yaml
 ```
 
 * Perform a health check.
